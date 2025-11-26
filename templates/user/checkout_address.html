@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Checkout - Delivery Address</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fa;
+            color: #333;
+        }
+
+        .navbar {
+            background: white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 16px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .back-btn {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: color 0.3s ease;
+        }
+
+        .back-btn:hover {
+            color: #764ba2;
+        }
+
+        .checkout-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 30px;
+        }
+
+        .address-section {
+            background: white;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .section-header {
+            margin-bottom: 30px;
+        }
+
+        h2 {
+            font-size: 28px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .section-subtitle {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .flash-messages {
+            margin-bottom: 20px;
+        }
+
+        .flash-messages p {
+            background: #d4edda;
+            color: #155724;
+            padding: 12px 16px;
+            border-radius: 8px;
+            border-left: 4px solid #28a745;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        .flash-messages p.error {
+            background: #fee;
+            color: #c33;
+            border-left-color: #c33;
+        }
+
+        /* Saved Addresses Section */
+        .saved-addresses {
+            margin-bottom: 30px;
+        }
+
+        .saved-addresses h3 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: #333;
+        }
+
+        .address-cards {
+            display: grid;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .address-card {
+            border: 2px solid #e1e8ed;
+            padding: 20px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .address-card:hover {
+            border-color: #667eea;
+            background: #f8f9fa;
+        }
+
+        .address-card.selected {
+            border-color: #667eea;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+        }
+
+        .address-card input[type="radio"] {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .address-type-badge {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+
+        .address-card .name {
+            font-weight: 600;
+            font-size: 16px;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        .address-card .details {
+            color: #666;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .address-card .phone {
+            color: #667eea;
+            font-weight: 500;
+            margin-top: 8px;
+        }
+
+        .add-new-toggle {
+            background: white;
+            border: 2px dashed #667eea;
+            padding: 16px;
+            border-radius: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .add-new-toggle:hover {
+            background: #f8f9fa;
+            border-color: #764ba2;
+            color: #764ba2;
+        }
+
+        /* New Address Form */
+        .new-address-form {
+            display: none;
+            margin-top: 20px;
+        }
+
+        .new-address-form.active {
+            display: block;
+        }
+
+        .address-form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        label {
+            color: #555;
+            font-weight: 500;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        label .required {
+            color: #dc3545;
+        }
+
+        input[type="text"],
+        input[type="tel"],
+        input[type="email"],
+        textarea,
+        select {
+            padding: 14px 16px;
+            border: 2px solid #e1e8ed;
+            border-radius: 8px;
+            font-size: 15px;
+            font-family: inherit;
+            transition: all 0.3s ease;
+        }
+
+        input:focus,
+        textarea:focus,
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .submit-btn {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            padding: 16px 32px;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(40, 167, 69, 0.4);
+        }
+
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+
+        .submit-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Order Summary Sidebar */
+        .order-summary {
+            background: white;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            height: fit-content;
+            position: sticky;
+            top: 90px;
+        }
+
+        .order-summary h3 {
+            font-size: 20px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .cart-items {
+            max-height: 300px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+        }
+
+        .cart-item {
+            display: flex;
+            gap: 12px;
+            padding: 12px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .cart-item:last-child {
+            border-bottom: none;
+        }
+
+        .item-image {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 2px solid #f0f0f0;
+        }
+
+        .item-details {
+            flex: 1;
+        }
+
+        .item-name {
+            font-weight: 600;
+            font-size: 14px;
+            color: #333;
+            margin-bottom: 4px;
+        }
+
+        .item-meta {
+            font-size: 13px;
+            color: #666;
+        }
+
+        .item-price {
+            font-weight: 600;
+            color: #28a745;
+            font-size: 14px;
+        }
+
+        .summary-details {
+            padding: 20px 0;
+            border-top: 2px solid #f0f0f0;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            font-size: 14px;
+        }
+
+        .summary-row.total {
+            font-size: 18px;
+            font-weight: 700;
+            color: #333;
+            padding-top: 12px;
+            border-top: 2px solid #e1e8ed;
+            margin-top: 12px;
+        }
+
+        .summary-row .amount {
+            color: #28a745;
+        }
+
+        .security-note {
+            background: #f8f9fa;
+            padding: 16px;
+            border-radius: 8px;
+            margin-top: 20px;
+            text-align: center;
+            font-size: 13px;
+            color: #666;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        @media (max-width: 968px) {
+            .checkout-container {
+                grid-template-columns: 1fr;
+            }
+
+            .order-summary {
+                position: static;
+                order: -1;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .address-section {
+                padding: 30px 20px;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .checkout-container {
+                padding: 20px 10px;
+            }
+
+            h2 {
+                font-size: 22px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Navigation Bar -->
+<div class="navbar">
+    <div class="nav-container">
+        <a href="/user/cart" class="back-btn">
+            ← Back to Cart
+        </a>
+    </div>
+</div>
+
+<!-- Checkout Container -->
+<div class="checkout-container">
+
+    <!-- Address Form Section -->
+    <div class="address-section">
+        <div class="section-header">
+            <h2>🚚 Delivery Address</h2>
+            <p class="section-subtitle">Choose a delivery address or add a new one</p>
+        </div>
+
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            <div class="flash-messages">
+            {% for category, message in messages %}
+              <p class="{{ 'error' if category == 'danger' else '' }}">{{ message }}</p>
+            {% endfor %}
+            </div>
+          {% endif %}
+        {% endwith %}
+
+        <form method="POST" action="/user/checkout" id="checkoutForm">
+
+            <!-- Saved Addresses -->
+            {% if saved_addresses %}
+            <div class="saved-addresses">
+                <h3>📍 Saved Addresses</h3>
+                <div class="address-cards">
+                    {% for address in saved_addresses %}
+                    <div class="address-card" onclick="selectAddress({{ address.address_id }})">
+                        <input type="radio" name="selected_address_id" value="{{ address.address_id }}" 
+                               {% if address.is_default %}checked{% endif %}>
+                        <span class="address-type-badge">{{ address.address_type }}</span>
+                        <div class="name">{{ address.full_name }}</div>
+                        <div class="details">
+                            {{ address.address_line1 }}{% if address.address_line2 %}, {{ address.address_line2 }}{% endif %}<br>
+                            {{ address.city }}, {{ address.state }} - {{ address.pincode }}
+                            {% if address.landmark %}<br>Landmark: {{ address.landmark }}{% endif %}
+                        </div>
+                        <div class="phone">📞 {{ address.phone }}</div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <div class="add-new-toggle" onclick="toggleNewAddressForm()">
+                    ➕ Add New Address
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- New Address Form -->
+            <div class="new-address-form {% if not saved_addresses %}active{% endif %}" id="newAddressForm">
+                <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 20px; color: #333;">
+                    {% if saved_addresses %}➕ Add New Address{% else %}📝 Enter Delivery Address{% endif %}
+                </h3>
+
+                <div class="address-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Full Name <span class="required">*</span></label>
+                            <input type="text" name="full_name" placeholder="Enter your full name">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Phone Number <span class="required">*</span></label>
+                            <input type="tel" name="phone" placeholder="+91 1234567890">
+                        </div>
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label>Email Address <span class="required">*</span></label>
+                        <input type="email" name="email" placeholder="your.email@example.com" value="{{ user_email }}">
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label>Address Line 1 <span class="required">*</span></label>
+                        <input type="text" name="address_line1" placeholder="House No., Building Name">
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label>Address Line 2</label>
+                        <input type="text" name="address_line2" placeholder="Road Name, Area, Colony (Optional)">
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>City <span class="required">*</span></label>
+                            <input type="text" name="city" placeholder="City">
+                        </div>
+
+                        <div class="form-group">
+                            <label>State <span class="required">*</span></label>
+                            <input type="text" name="state" placeholder="State">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>PIN Code <span class="required">*</span></label>
+                            <input type="text" name="pincode" placeholder="123456" pattern="[0-9]{6}">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Landmark</label>
+                            <input type="text" name="landmark" placeholder="Near... (Optional)">
+                        </div>
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label>Address Type</label>
+                        <select name="address_type">
+                            <option value="Home">Home</option>
+                            <option value="Work">Work</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group full-width">
+                        <div class="checkbox-group">
+                            <input type="checkbox" name="save_address" id="saveAddress" value="1" checked>
+                            <label for="saveAddress" style="margin: 0;">Save this address for future orders</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="submit-btn">
+                Proceed to Payment →
+            </button>
+
+        </form>
+    </div>
+
+    <!-- Order Summary Sidebar -->
+    <div class="order-summary">
+        <h3>Order Summary</h3>
+
+        <div class="cart-items">
+            {% for pid, item in cart.items() %}
+            <div class="cart-item">
+                <img src="/static/uploads/product_images/{{ item.image }}" 
+                     alt="{{ item.name }}" 
+                     class="item-image">
+                <div class="item-details">
+                    <div class="item-name">{{ item.name }}</div>
+                    <div class="item-meta">Qty: {{ item.quantity }}</div>
+                </div>
+                <div class="item-price">₹{{ item.price * item.quantity }}</div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="summary-details">
+            <div class="summary-row">
+                <span>Subtotal</span>
+                <span class="amount">₹{{ grand_total }}</span>
+            </div>
+            <div class="summary-row">
+                <span>Shipping</span>
+                <span class="amount">Free</span>
+            </div>
+            <div class="summary-row total">
+                <span>Total</span>
+                <span class="amount">₹{{ grand_total }}</span>
+            </div>
+        </div>
+
+        <div class="security-note">
+            🔒 Secure checkout powered by Razorpay
+        </div>
+    </div>
+
+</div>
+
+<script>
+    function selectAddress(addressId) {
+        // Remove selected class from all cards
+        document.querySelectorAll('.address-card').forEach(card => {
+            card.classList.remove('selected');
+        });
+        
+        // Add selected class to clicked card
+        event.currentTarget.classList.add('selected');
+        
+        // Check the radio button
+        document.querySelector(`input[value="${addressId}"]`).checked = true;
+        
+        // Hide new address form if visible
+        document.getElementById('newAddressForm').classList.remove('active');
+    }
+
+    function toggleNewAddressForm() {
+        const form = document.getElementById('newAddressForm');
+        const isActive = form.classList.contains('active');
+        
+        if (!isActive) {
+            form.classList.add('active');
+            // Uncheck all saved addresses
+            document.querySelectorAll('.address-card input[type="radio"]').forEach(radio => {
+                radio.checked = false;
+            });
+            document.querySelectorAll('.address-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+        } else {
+            form.classList.remove('active');
+        }
+    }
+
+    // Form validation
+    document.getElementById('checkoutForm').addEventListener('submit', function(e) {
+        const savedAddressChecked = document.querySelector('input[name="selected_address_id"]:checked');
+        const newAddressFormActive = document.getElementById('newAddressForm').classList.contains('active');
+        
+        if (!savedAddressChecked && !newAddressFormActive) {
+            e.preventDefault();
+            alert('Please select a delivery address or add a new one');
+            return false;
+        }
+        
+        // If new address form is active, validate required fields
+        if (newAddressFormActive) {
+            const requiredFields = ['full_name', 'phone', 'email', 'address_line1', 'city', 'state', 'pincode'];
+            let allFilled = true;
+            
+            requiredFields.forEach(field => {
+                const input = document.querySelector(`input[name="${field}"]`);
+                if (!input || !input.value.trim()) {
+                    allFilled = false;
+                }
+            });
+            
+            if (!allFilled) {
+                e.preventDefault();
+                alert('Please fill all required fields');
+                return false;
+            }
+        }
+    });
+</script>
+
+</body>
+</html>

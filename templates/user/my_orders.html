@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My Orders</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fa;
+            color: #333;
+        }
+
+        .navbar {
+            background: white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 16px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .back-btn {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: color 0.3s ease;
+        }
+
+        .back-btn:hover {
+            color: #764ba2;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .page-header {
+            margin-bottom: 30px;
+        }
+
+        h2 {
+            font-size: 32px;
+            font-weight: 700;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .empty-state {
+            background: white;
+            border-radius: 16px;
+            padding: 60px 40px;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .empty-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+
+        .empty-state p {
+            font-size: 18px;
+            color: #666;
+            margin-bottom: 24px;
+        }
+
+        .shop-btn {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 14px 32px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .shop-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .orders-grid {
+            display: grid;
+            gap: 20px;
+        }
+
+        .order-card {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            border-left: 5px solid #667eea;
+        }
+
+        .order-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+        }
+
+        .order-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .order-card h3 {
+            font-size: 20px;
+            color: #333;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-badge {
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-failed {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .order-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .info-item {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .info-label {
+            color: #666;
+            font-size: 13px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .info-value {
+            color: #333;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .amount-highlight {
+            color: #28a745;
+            font-size: 20px;
+        }
+
+        .order-actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-view {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-view:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-download {
+            background: white;
+            color: #28a745;
+            border: 2px solid #28a745;
+        }
+
+        .btn-download:hover {
+            background: #28a745;
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px 10px;
+            }
+
+            h2 {
+                font-size: 24px;
+            }
+
+            .order-card {
+                padding: 20px;
+            }
+
+            .order-card-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+            }
+
+            .order-info {
+                grid-template-columns: 1fr;
+            }
+
+            .order-actions {
+                flex-direction: column;
+            }
+
+            .action-btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Navigation Bar -->
+<div class="navbar">
+    <div class="nav-container">
+        <a href="/user-dashboard" class="back-btn">
+            ← Back to Dashboard
+        </a>
+    </div>
+</div>
+
+<!-- Main Container -->
+<div class="container">
+
+    <div class="page-header">
+        <h2>📦 My Orders</h2>
+    </div>
+
+    {% if orders|length == 0 %}
+        <!-- Empty State -->
+        <div class="empty-state">
+            <div class="empty-icon">📦</div>
+            <p>You have not placed any orders yet</p>
+            <a href="/user-dashboard" class="shop-btn">Start Shopping</a>
+        </div>
+
+    {% else %}
+
+        <!-- Orders Grid -->
+        <div class="orders-grid">
+            {% for order in orders %}
+            <div class="order-card">
+
+                <!-- Order Header -->
+                <div class="order-card-header">
+                    <h3>
+                        📋 Order #{{ order.order_id }}
+                    </h3>
+                    <span class="status-badge {% if order.payment_status == 'success' %}status-success{% elif order.payment_status == 'pending' %}status-pending{% else %}status-failed{% endif %}">
+                        {{ order.payment_status }}
+                    </span>
+                </div>
+
+                <!-- Order Info -->
+                <div class="order-info">
+                    <div class="info-item">
+                        <span class="info-label">Amount</span>
+                        <span class="info-value amount-highlight">₹{{ order.amount }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Order Date</span>
+                        <span class="info-value">{{ order.created_at }}</span>
+                    </div>
+                </div>
+
+                <!-- Order Actions -->
+                <div class="order-actions">
+                    <a href="/user/order-success/{{ order.order_id }}" class="action-btn btn-view">
+                        👁️ View Details
+                    </a>
+                    <a href="/user/download-invoice/{{ order.order_id }}" class="action-btn btn-download">
+                        📄 Download Invoice
+                    </a>
+                </div>
+
+            </div>
+            {% endfor %}
+        </div>
+
+    {% endif %}
+
+</div>
+
+</body>
+</html>

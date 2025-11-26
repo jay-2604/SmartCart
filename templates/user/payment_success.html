@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Payment Successful</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            padding: 50px 40px;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .success-animation {
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        .checkmark-circle {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: scaleIn 0.5s ease-out;
+        }
+
+        @keyframes scaleIn {
+            0% {
+                transform: scale(0);
+            }
+            50% {
+                transform: scale(1.1);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .checkmark {
+            font-size: 64px;
+            animation: checkmark 0.8s ease-in-out 0.3s both;
+        }
+
+        @keyframes checkmark {
+            0% {
+                opacity: 0;
+                transform: rotate(-45deg) scale(0);
+            }
+            100% {
+                opacity: 1;
+                transform: rotate(0) scale(1);
+            }
+        }
+
+        h2 {
+            color: #28a745;
+            margin-bottom: 16px;
+            font-size: 32px;
+            font-weight: 700;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 16px;
+            margin-bottom: 40px;
+        }
+
+        .payment-details {
+            background: #f8f9fa;
+            padding: 24px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            text-align: left;
+        }
+
+        .payment-details h3 {
+            color: #333;
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #e1e8ed;
+        }
+
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+
+        .detail-label {
+            color: #666;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .detail-value {
+            color: #333;
+            font-weight: 600;
+            font-size: 14px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            border-left: 4px solid #28a745;
+            font-size: 14px;
+            text-align: left;
+        }
+
+        .action-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .primary-btn {
+            display: block;
+            width: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 16px 32px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .primary-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .secondary-btn {
+            display: block;
+            width: 100%;
+            background: white;
+            color: #667eea;
+            padding: 14px 32px;
+            border: 2px solid #667eea;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .secondary-btn:hover {
+            background: #f8f9fa;
+            border-color: #764ba2;
+            color: #764ba2;
+        }
+
+        @media (max-width: 576px) {
+            .container {
+                padding: 40px 30px;
+            }
+
+            h2 {
+                font-size: 26px;
+            }
+
+            .checkmark-circle {
+                width: 100px;
+                height: 100px;
+            }
+
+            .checkmark {
+                font-size: 50px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="success-animation">
+        <div class="checkmark-circle">
+            <div class="checkmark">✓</div>
+        </div>
+    </div>
+
+    <h2>Payment Successful!</h2>
+    <p class="subtitle">Your transaction has been completed successfully</p>
+
+    <div class="success-message">
+        Thank you for your purchase! A confirmation email has been sent to your registered email address.
+    </div>
+
+    <div class="payment-details">
+        <h3>Transaction Details</h3>
+        <div class="detail-row">
+            <span class="detail-label">Payment ID</span>
+            <span class="detail-value">{{ payment_id }}</span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-label">Order ID</span>
+            <span class="detail-value">{{ order_id }}</span>
+        </div>
+    </div>
+
+    <div class="action-buttons">
+        <a href="/user-dashboard" class="primary-btn">Continue Shopping</a>
+        <a href="/user-dashboard" class="secondary-btn">Go to Dashboard</a>
+    </div>
+</div>
+
+</body>
+</html>

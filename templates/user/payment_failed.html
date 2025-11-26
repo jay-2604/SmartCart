@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Payment Failed</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            padding: 50px 40px;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .error-animation {
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        .error-circle {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: shake 0.6s ease-out;
+        }
+
+        @keyframes shake {
+            0%, 100% {
+                transform: translateX(0);
+            }
+            10%, 30%, 50%, 70%, 90% {
+                transform: translateX(-8px);
+            }
+            20%, 40%, 60%, 80% {
+                transform: translateX(8px);
+            }
+        }
+
+        .error-icon {
+            font-size: 64px;
+            animation: errorIcon 0.8s ease-in-out 0.3s both;
+        }
+
+        @keyframes errorIcon {
+            0% {
+                opacity: 0;
+                transform: rotate(-45deg) scale(0);
+            }
+            100% {
+                opacity: 1;
+                transform: rotate(0) scale(1);
+            }
+        }
+
+        h2 {
+            color: #dc3545;
+            margin-bottom: 16px;
+            font-size: 32px;
+            font-weight: 700;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 16px;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .error-details {
+            background: #f8f9fa;
+            padding: 24px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            text-align: left;
+        }
+
+        .error-details h3 {
+            color: #333;
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #e1e8ed;
+        }
+
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+
+        .detail-label {
+            color: #666;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .detail-value {
+            color: #333;
+            font-weight: 600;
+            font-size: 14px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            border-left: 4px solid #dc3545;
+            font-size: 14px;
+            text-align: left;
+        }
+
+        .reasons-section {
+            background: #fff3cd;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            text-align: left;
+            border-left: 4px solid #ffc107;
+        }
+
+        .reasons-section h4 {
+            color: #856404;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .reasons-section ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .reasons-section li {
+            color: #856404;
+            font-size: 13px;
+            padding: 4px 0;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .reasons-section li:before {
+            content: "•";
+            position: absolute;
+            left: 0;
+            font-weight: bold;
+        }
+
+        .action-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .primary-btn {
+            display: block;
+            width: 100%;
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            padding: 16px 32px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .primary-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(40, 167, 69, 0.4);
+        }
+
+        .secondary-btn {
+            display: block;
+            width: 100%;
+            background: white;
+            color: #667eea;
+            padding: 14px 32px;
+            border: 2px solid #667eea;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .secondary-btn:hover {
+            background: #f8f9fa;
+            border-color: #764ba2;
+            color: #764ba2;
+        }
+
+        .support-link {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #e1e8ed;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .support-link a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .support-link a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 576px) {
+            .container {
+                padding: 40px 30px;
+            }
+
+            h2 {
+                font-size: 26px;
+            }
+
+            .error-circle {
+                width: 100px;
+                height: 100px;
+            }
+
+            .error-icon {
+                font-size: 50px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="error-animation">
+        <div class="error-circle">
+            <div class="error-icon">✕</div>
+        </div>
+    </div>
+
+    <h2>Payment Failed</h2>
+    <p class="subtitle">Unfortunately, your payment could not be processed</p>
+
+    <div class="error-message">
+        Your transaction was unsuccessful. 
+        {% if reason %}
+        <br><strong>Reason:</strong> {{ reason }}
+        {% else %}
+        Please check your payment details and try again.
+        {% endif %}
+    </div>
+
+    {% if payment_id or order_id %}
+    <div class="error-details">
+        <h3>Transaction Details</h3>
+        {% if payment_id %}
+        <div class="detail-row">
+            <span class="detail-label">Payment ID</span>
+            <span class="detail-value">{{ payment_id }}</span>
+        </div>
+        {% endif %}
+        {% if order_id %}
+        <div class="detail-row">
+            <span class="detail-label">Order ID</span>
+            <span class="detail-value">{{ order_id }}</span>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <div class="reasons-section">
+        <h4>Common Reasons for Payment Failure:</h4>
+        <ul>
+            <li>Insufficient funds in your account</li>
+            <li>Incorrect card details or expired card</li>
+            <li>Bank declined the transaction</li>
+            <li>Network connectivity issues</li>
+            <li>Daily transaction limit exceeded</li>
+        </ul>
+    </div>
+
+    <div class="action-buttons">
+        <a href="/user/pay" class="primary-btn">Retry Payment</a>
+        <a href="/user/cart" class="secondary-btn">Back to Cart</a>
+    </div>
+
+    <div class="support-link">
+        Need help? <a href="/contact">Contact Support</a>
+    </div>
+</div>
+
+</body>
+</html>

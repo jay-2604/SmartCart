@@ -1,0 +1,162 @@
+/* General Styles */
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f8f9fa;
+    color: #333;
+}
+
+/* Navbar */
+.navbar {
+    background-color: #007bff;
+}
+
+.navbar-brand {
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+.navbar .nav-link {
+    font-weight: 500;
+}
+
+/* Cards */
+.card {
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.card-body {
+    padding: 2rem;
+}
+
+.card-title {
+    font-size: 1.25rem;
+}
+
+.card-text {
+    font-size: 0.9rem;
+}
+
+/* Buttons */
+.btn {
+    border-radius: 50px;
+    padding: 10px 20px;
+}
+
+.btn-lg {
+    font-size: 1.1rem;
+}
+
+.btn-outline-secondary {
+    border-color: #d1d1d1;
+    color: #333;
+}
+
+.btn-outline-secondary:hover {
+    background-color: #f1f1f1;
+}
+
+/* Form Styles */
+.form-control {
+    border-radius: 0.5rem;
+}
+
+.form-label {
+    font-weight: 600;
+}
+
+textarea.form-control {
+    resize: none;
+}
+
+/* Footer */
+footer {
+    background-color: #007bff;
+    color: #fff;
+    padding: 1.5rem 0;
+}
+
+footer p {
+    font-size: 0.9rem;
+}
+
+/* Flash Messages */
+.alert {
+    border-radius: 10px;
+}
+
+.alert-dismissible .btn-close {
+    padding: 0.5rem;
+}
+
+/* Hover Effects */
+.hover-lift {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.hover-lift:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+/* Custom Input Fields */
+.input-group {
+    border-radius: 10px;
+}
+
+.input-group-text {
+    border-radius: 0.5rem;
+}
+
+/* Image Upload Preview */
+#imagePreview {
+    display: none;
+}
+
+#imagePreview img {
+    max-width: 100%;
+    max-height: 200px;
+    object-fit: contain;
+}
+
+/* Gradient Backgrounds */
+.bg-gradient {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .navbar-toggler {
+        border-color: #007bff;
+    }
+    
+    .card-body {
+        padding: 1.5rem;
+    }
+    
+    .container {
+        padding: 0 15px;
+    }
+}
+
+
+table {
+            width: 90%;
+            margin: auto;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid #444;
+        }
+        th {
+            background: #333;
+            color: white;
+        }
+        img {
+            width: 80px;
+            height: auto;
+        }
+
+
+        
