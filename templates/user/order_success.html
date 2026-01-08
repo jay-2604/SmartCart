@@ -1,8 +1,7 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Order Successful</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+{% extends "user/base.html" %}
+{% block title %}Order Successful - SmartCart{% endblock %}
+
+{% block extra_css %}
     <style>
         * {
             margin: 0;
@@ -293,17 +292,9 @@
             }
         }
     </style>
-</head>
-<body>
+{% endblock %}
 
-<!-- Navigation Bar -->
-<div class="navbar">
-    <div class="nav-container">
-        <a href="/user-dashboard" class="back-btn">
-            ← Back to Dashboard
-        </a>
-    </div>
-</div>
+{% block content %}
 
 <!-- Success Container -->
 <div class="success-container">
@@ -381,5 +372,5 @@
 
 </div>
 
-</body>
-</html>
+{% endblock %}
+
