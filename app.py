@@ -3,26 +3,25 @@
 # DAY 2: Admin Signup + OTP + Password Hash
 # ---------------------------------------------------------
 
-from flask import Flask, render_template, request, redirect, session, flash, make_response
+from flask import Flask, render_template, request, redirect, session, flash, make_response, url_for
 from flask_mail import Mail, Message
 from utils.pdf_generator import generate_pdf
 import mysql.connector
 import bcrypt
 import random
 import config
+import secrets
 import os
+import time
 from werkzeug.utils import secure_filename
 
 import razorpay
-
 import traceback
 
 
 razorpay_client = razorpay.Client(
     auth=(config.RAZORPAY_KEY_ID, config.RAZORPAY_KEY_SECRET)
 )
-
-
 
 app = Flask(__name__)
 app.secret_key = config.SECRET_KEY
@@ -45,6 +44,14 @@ def get_db_connection():
         password=config.DB_PASSWORD,
         database=config.DB_NAME
     )
+
+
+# =================================================================
+# ROOT ROUTE: REDIRECT TO USER LOGIN
+# =================================================================
+@app.route('/')
+def home():
+    return redirect('/user-login')
 
 
 # ---------------------------------------------------------
@@ -94,7 +101,6 @@ def admin_signup():
     return redirect('/verify-otp')
 
 
-
 # ---------------------------------------------------------
 # ROUTE 2: DISPLAY OTP PAGE
 # ---------------------------------------------------------
@@ -103,13 +109,12 @@ def verify_otp_get():
     return render_template("admin/verify_otp.html")
 
 
-
 # ---------------------------------------------------------
 # ROUTE 3: VERIFY OTP + SAVE ADMIN
 # ---------------------------------------------------------
 @app.route('/verify-otp', methods=['POST'])
 def verify_otp_post():
-    
+
     # User submitted OTP + Password
     user_otp = request.form['otp']
     password = request.form['password']
@@ -140,7 +145,6 @@ def verify_otp_post():
 
     flash("Admin Registered Successfully!", "success")
     return redirect('/admin-login')
-
 
 
 # =================================================================
@@ -182,10 +186,10 @@ def admin_login():
     session['admin_id'] = admin['admin_id']
     session['admin_name'] = admin['name']
     session['admin_email'] = admin['email']
+    session['admin_profile_image'] = admin.get('profile_image')  # 🔹 store image in session
 
     flash("Login Successful!", "success")
     return redirect('/admin-dashboard')
-
 
 
 # =================================================================
@@ -203,8 +207,6 @@ def admin_dashboard():
     return render_template("admin/dashboard.html", admin_name=session['admin_name'])
 
 
-
-
 # =================================================================
 # ROUTE 6: ADMIN LOGOUT
 # =================================================================
@@ -215,19 +217,26 @@ def admin_logout():
     session.pop('admin_id', None)
     session.pop('admin_name', None)
     session.pop('admin_email', None)
+    session.pop('admin_profile_image', None)  # 🔹 clear profile image from session
 
     flash("Logged out successfully.", "success")
     return redirect('/admin-login')
 
 
-
 # ------------------- IMAGE UPLOAD PATH -------------------
-UPLOAD_FOLDER = 'static/uploads/product_images'
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+# Use absolute paths based on app.root_path and auto-create folders
+BASE_UPLOAD_PATH = os.path.join(app.root_path, 'static', 'uploads')
 
+PRODUCT_UPLOAD_FOLDER = os.path.join(BASE_UPLOAD_PATH, 'product_images')
+ADMIN_UPLOAD_FOLDER = os.path.join(BASE_UPLOAD_PATH, 'admin_profiles')
 
-ADMIN_UPLOAD_FOLDER = 'static/uploads/admin_profiles'
-app.config['ADMIN_UPLOAD_FOLDER'] = ADMIN_UPLOAD_FOLDER
+# Ensure the folders exist
+os.makedirs(PRODUCT_UPLOAD_FOLDER, exist_ok=True)
+os.makedirs(ADMIN_UPLOAD_FOLDER, exist_ok=True)
+
+# Save into config
+app.config['UPLOAD_FOLDER'] = PRODUCT_UPLOAD_FOLDER          # for products
+app.config['ADMIN_UPLOAD_FOLDER'] = ADMIN_UPLOAD_FOLDER      # for admin profile images
 
 
 # =================================================================
@@ -244,11 +253,8 @@ def add_item_page():
     return render_template("admin/add_item.html")
 
 
-
-
-
 # =================================================================
-# ROUTE 8: ADD PRODUCT INTO DATABASE
+# ROUTE 8: ADD PRODUCT INTO DATABASE  (NOW WITH QUANTITY)
 # =================================================================
 @app.route('/admin/add-item', methods=['POST'])
 def add_item():
@@ -263,6 +269,15 @@ def add_item():
     description = request.form['description']
     category = request.form['category']
     price = request.form['price']
+
+    # NEW: quantity
+    try:
+        quantity = int(request.form.get('quantity', 0))
+        if quantity < 0:
+            quantity = 0
+    except ValueError:
+        quantity = 0
+
     image_file = request.files['image']
 
     # 2️⃣ Validate image upload
@@ -279,13 +294,13 @@ def add_item():
     # 5️⃣ Save image into folder
     image_file.save(image_path)
 
-    # 6️⃣ Insert product into database
+    # 6️⃣ Insert product into database (with quantity)
     conn = get_db_connection()
     cursor = conn.cursor()
 
     cursor.execute(
-        "INSERT INTO products (name, description, category, price, image) VALUES (%s, %s, %s, %s, %s)",
-        (name, description, category, price, filename)
+        "INSERT INTO products (name, description, category, price, quantity, image) VALUES (%s, %s, %s, %s, %s, %s)",
+        (name, description, category, price, quantity, filename)
     )
 
     conn.commit()
@@ -296,14 +311,9 @@ def add_item():
     return redirect('/admin/add-item')
 
 
-
-
-
-
 # =================================================================
 # ROUTE 9: DISPLAY ALL PRODUCTS (Admin)
 # =================================================================
-
 @app.route('/admin/item-list')
 def item_list():
 
@@ -369,7 +379,6 @@ def view_item(item_id):
     return render_template("admin/view_item.html", product=product)
 
 
-
 # =================================================================
 # ROUTE 11: SHOW UPDATE FORM WITH EXISTING DATA
 # =================================================================
@@ -398,10 +407,8 @@ def update_item_page(item_id):
     return render_template("admin/update_item.html", product=product)
 
 
-
-
 # =================================================================
-# ROUTE 12: UPDATE PRODUCT + OPTIONAL IMAGE REPLACE
+# ROUTE 12: UPDATE PRODUCT + OPTIONAL IMAGE REPLACE (NOW WITH QUANTITY)
 # =================================================================
 @app.route('/admin/update-item/<int:item_id>', methods=['POST'])
 def update_item(item_id):
@@ -416,6 +423,14 @@ def update_item(item_id):
     category = request.form['category']
     price = request.form['price']
 
+    # NEW: quantity
+    try:
+        quantity = int(request.form.get('quantity', 0))
+        if quantity < 0:
+            quantity = 0
+    except ValueError:
+        quantity = 0
+
     new_image = request.files['image']
 
     # 2️⃣ Fetch old product data
@@ -426,15 +441,15 @@ def update_item(item_id):
 
     if not product:
         flash("Product not found!", "danger")
+        cursor.close()
+        conn.close()
         return redirect('/admin/item-list')
 
     old_image_name = product['image']
 
     # 3️⃣ If admin uploaded a new image → replace it
     if new_image and new_image.filename != "":
-        
-        # Secure filename
-        from werkzeug.utils import secure_filename
+
         new_filename = secure_filename(new_image.filename)
 
         # Save new image
@@ -452,12 +467,12 @@ def update_item(item_id):
         # No new image uploaded → keep old one
         final_image_name = old_image_name
 
-    # 4️⃣ Update product in the database
+    # 4️⃣ Update product in the database (with quantity)
     cursor.execute("""
         UPDATE products
-        SET name=%s, description=%s, category=%s, price=%s, image=%s
+        SET name=%s, description=%s, category=%s, price=%s, quantity=%s, image=%s
         WHERE product_id=%s
-    """, (name, description, category, price, final_image_name, item_id))
+    """, (name, description, category, price, quantity, final_image_name, item_id))
 
     conn.commit()
     cursor.close()
@@ -470,6 +485,7 @@ def update_item(item_id):
 @app.route('/about')
 def about_page():
     return render_template("admin/about.html")
+
 
 @app.route('/contact')
 def contact_page():
@@ -515,7 +531,6 @@ def delete_item(item_id):
     return redirect('/admin/item-list')
 
 
-
 # =================================================================
 # ROUTE 15: SHOW ADMIN PROFILE DATA
 # =================================================================
@@ -540,7 +555,6 @@ def admin_profile():
     return render_template("admin/admin_profile.html", admin=admin)
 
 
-
 # =================================================================
 # ROUTE 16: UPDATE ADMIN PROFILE (NAME, EMAIL, PASSWORD, IMAGE)
 # =================================================================
@@ -557,7 +571,7 @@ def admin_profile_update():
     name = request.form['name']
     email = request.form['email']
     new_password = request.form['password']
-    new_image = request.files['profile_image']
+    new_image = request.files.get('profile_image')
 
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
@@ -565,6 +579,12 @@ def admin_profile_update():
     # 2️⃣ Fetch old admin data
     cursor.execute("SELECT * FROM admin WHERE admin_id = %s", (admin_id,))
     admin = cursor.fetchone()
+
+    if not admin:
+        cursor.close()
+        conn.close()
+        flash("Admin not found.", "danger")
+        return redirect('/admin-login')
 
     old_image_name = admin['profile_image']
 
@@ -575,20 +595,27 @@ def admin_profile_update():
         hashed_password = admin['password']  # keep old password
 
     # 4️⃣ Process new profile image if uploaded
-    if new_image and new_image.filename != "":
-        
-        from werkzeug.utils import secure_filename
-        new_filename = secure_filename(new_image.filename)
+    if new_image and new_image.filename.strip() != "":
+        # Create a unique filename to prevent browser caching issues
+        _, ext = os.path.splitext(new_image.filename)
+        ext = ext.lower()
+        if ext not in ['.jpg', '.jpeg', '.png', '.gif', '.webp']:
+            ext = '.jpg'
+
+        new_filename = secure_filename(f"admin_{admin_id}_{int(time.time())}{ext}")
+        image_path = os.path.join(app.config['ADMIN_UPLOAD_FOLDER'], new_filename)
 
         # Save new image
-        image_path = os.path.join(app.config['ADMIN_UPLOAD_FOLDER'], new_filename)
         new_image.save(image_path)
 
-        # Delete old image
+        # Delete old image if exists
         if old_image_name:
             old_image_path = os.path.join(app.config['ADMIN_UPLOAD_FOLDER'], old_image_name)
             if os.path.exists(old_image_path):
-                os.remove(old_image_path)
+                try:
+                    os.remove(old_image_path)
+                except OSError:
+                    pass
 
         final_image_name = new_filename
     else:
@@ -605,9 +632,10 @@ def admin_profile_update():
     cursor.close()
     conn.close()
 
-    # Update session name for UI consistency
-    session['admin_name'] = name  
+    # Update session for UI consistency
+    session['admin_name'] = name
     session['admin_email'] = email
+    session['admin_profile_image'] = final_image_name  # 🔹 keep navbar avatar in sync
 
     flash("Profile updated successfully!", "success")
     return redirect('/admin/profile')
@@ -615,50 +643,119 @@ def admin_profile_update():
 
 
 # =================================================================
-# ROUTE 17: USER REGISTRATION
+# ROUTE 17: USER REGISTRATION WITH OTP (UPDATED)
 # =================================================================
 @app.route('/user-register', methods=['GET', 'POST'])
 def user_register():
 
-    if request.method == 'GET':
+    # Show form
+    if request.method == "GET":
         return render_template("user/user_register.html")
 
+    # POST → Process registration (send OTP)
     name = request.form['name']
     email = request.form['email']
-    password = request.form['password']
 
-    # Check if user already exists
+    # 1️⃣ Check if user email already exists
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
-
-    cursor.execute("SELECT * FROM users WHERE email=%s", (email,))
+    cursor.execute("SELECT user_id FROM users WHERE email=%s", (email,))
     existing_user = cursor.fetchone()
-
-    if existing_user:
-        flash("Email already registered! Please login.", "danger")
-        return redirect('/user-register')
-
-    # Hash password
-    hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
-
-    # Insert new user
-    cursor.execute(
-        "INSERT INTO users (name, email, password) VALUES (%s, %s, %s)",
-        (name, email, hashed_password)
-    )
-    conn.commit()
-
     cursor.close()
     conn.close()
 
-    flash("Registration successful! Please login.", "success")
-    return redirect('/user-login')
+    if existing_user:
+        flash("This email is already registered. Please login instead.", "danger")
+        return redirect('/user-register')
 
+    # 2️⃣ Save user input temporarily in session
+    session['user_signup_name'] = name
+    session['user_signup_email'] = email
 
+    # 3️⃣ Generate OTP and store in session
+    otp = random.randint(100000, 999999)
+    session['user_otp'] = otp
+
+    # 4️⃣ Send OTP Email
+    message = Message(
+        subject="SmartCart - Email Verification OTP",
+        sender=config.MAIL_USERNAME,
+        recipients=[email]
+    )
+    message.body = f"""Hello {name},
+
+Your OTP for SmartCart Registration is: {otp}
+
+This OTP is valid for 10 minutes.
+
+Regards,
+SmartCart Team"""
+    try:
+        mail.send(message)
+        flash("OTP sent to your email!", "success")
+        return redirect('/user-verify-otp')
+    except Exception as e:
+        flash("Failed to send OTP. Please try again.", "danger")
+        return redirect('/user-register')
 
 
 # =================================================================
-# ROUTE 18: USER LOGIN
+# ROUTE 18: USER OTP VERIFICATION PAGE (GET)
+# =================================================================
+@app.route('/user-verify-otp', methods=['GET'])
+def user_verify_otp_get():
+    if 'user_signup_email' not in session:
+        flash("Please register first!", "danger")
+        return redirect('/user-register')
+    return render_template("user/user_verify_otp.html")
+
+
+# =================================================================
+# ROUTE 19: USER OTP VERIFICATION + ACCOUNT CREATION (POST)
+# =================================================================
+@app.route('/user-verify-otp', methods=['POST'])
+def user_verify_otp_post():
+
+    # User submitted OTP + Password
+    user_otp = request.form['otp']
+    password = request.form['password']
+    confirm_password = request.form['confirm_password']
+
+    # Check if passwords match
+    if password != confirm_password:
+        flash("Passwords do not match!", "danger")
+        return redirect('/user-verify-otp')
+
+    # Compare OTP
+    if str(session.get('user_otp')) != str(user_otp):
+        flash("Invalid OTP. Try again!", "danger")
+        return redirect('/user-verify-otp')
+
+    # Hash password using bcrypt
+    hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+
+    # Insert user into database
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute(
+        "INSERT INTO users (name, email, password) VALUES (%s, %s, %s)",
+        (session['user_signup_name'], session['user_signup_email'], hashed_password)
+    )
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+    # Clear temporary session data
+    session.pop('user_otp', None)
+    session.pop('user_signup_name', None)
+    session.pop('user_signup_email', None)
+
+    flash("Registration Successful! Please login.", "success")
+    return redirect('/user-login')
+
+
+# =================================================================
+# ROUTE 20: USER LOGIN
 # =================================================================
 @app.route('/user-login', methods=['GET', 'POST'])
 def user_login():
@@ -696,11 +793,8 @@ def user_login():
     return redirect('/user-dashboard')
 
 
-
-
-
 # =================================================================
-# ROUTE 19: USER DASHBOARD
+# ROUTE 21: USER DASHBOARD
 # =================================================================
 @app.route('/user-dashboard')
 def user_dashboard():
@@ -740,19 +834,20 @@ def user_dashboard():
     cursor.close()
     conn.close()
 
-    return render_template( "user/user_home.html", user_name = session['user_name'], products=products, categories=categories)
-
-
-
-
+    return render_template(
+        "user/user_home.html",
+        user_name=session['user_name'],
+        products=products,
+        categories=categories
+    )
 
 
 # =================================================================
-# ROUTE 20: USER LOGOUT
+# ROUTE 22: USER LOGOUT
 # =================================================================
 @app.route('/user-logout')
 def user_logout():
-    
+
     session.pop('user_id', None)
     session.pop('user_name', None)
     session.pop('user_email', None)
@@ -761,12 +856,8 @@ def user_logout():
     return redirect('/user-login')
 
 
-
-
-
-
 # =================================================================
-# ROUTE 21: USER PRODUCT DETAILS PAGE
+# ROUTE 23: USER PRODUCT DETAILS PAGE
 # =================================================================
 @app.route('/user/product/<int:product_id>')
 def user_product_details(product_id):
@@ -790,8 +881,9 @@ def user_product_details(product_id):
 
     return render_template("user/product_details.html", product=product)
 
+
 # =================================================================
-# ROUTE 22: USER - FORGOT PASSWORD
+# ROUTE 24: USER - FORGOT PASSWORD (WITH EXPLICIT SENDER)
 # =================================================================
 @app.route('/forgot-password', methods=['GET', 'POST'])
 def forgot_password():
@@ -818,8 +910,12 @@ def forgot_password():
             # Create reset link
             reset_link = url_for('reset_password', token=token, _external=True)
 
-            # Send email
-            msg = Message("SmartCart - Password Reset", recipients=[email])
+            # Send email with explicit sender
+            msg = Message(
+                subject="SmartCart - Password Reset",
+                sender=config.MAIL_USERNAME,  # Explicitly set sender
+                recipients=[email]
+            )
             msg.body = f"""
 Hello {user['name']},
 
@@ -833,9 +929,12 @@ If you did NOT request this, simply ignore this email.
 Regards,
 SmartCart Team
 """
-            mail.send(msg)
-
-            flash("A password reset link has been sent to your email.", "info")
+            try:
+                mail.send(msg)
+                flash("A password reset link has been sent to your email.", "info")
+            except Exception as e:
+                flash(f"Failed to send email: {str(e)}", "danger")
+                app.logger.error(f"Email send error: {str(e)}")
 
         else:
             flash("No account found with that email.", "danger")
@@ -844,11 +943,12 @@ SmartCart Team
         conn.close()
         return redirect('/forgot-password')
 
+    # GET request - show the form
     return render_template('user/forgot_password.html')
 
 
 # =================================================================
-# ROUTE 23: USER - RESET PASSWORD
+# ROUTE 25: USER - RESET PASSWORD
 # =================================================================
 @app.route('/reset-password/<token>', methods=['GET', 'POST'])
 def reset_password(token):
@@ -898,9 +998,8 @@ def reset_password(token):
     return render_template('user/reset_password.html', token=token)
 
 
-
 # =================================================================
-# ADD ITEM TO CART
+# ROUTE 26: ADD ITEM TO CART
 # =================================================================
 @app.route('/user/add-to-cart/<int:product_id>')
 def add_to_cart(product_id):
@@ -946,9 +1045,8 @@ def add_to_cart(product_id):
     return redirect('/user/cart')
 
 
-
 # =================================================================
-# VIEW CART PAGE
+# ROUTE 27: VIEW CART PAGE
 # =================================================================
 @app.route('/user/cart')
 def view_cart():
@@ -965,10 +1063,8 @@ def view_cart():
     return render_template("user/cart.html", cart=cart, grand_total=grand_total)
 
 
-
-
 # =================================================================
-# INCREASE QUANTITY
+# ROUTE 28: INCREASE QUANTITY
 # =================================================================
 @app.route('/user/cart/increase/<pid>')
 def increase_quantity(pid):
@@ -982,10 +1078,8 @@ def increase_quantity(pid):
     return redirect('/user/cart')
 
 
-
-
 # =================================================================
-# DECREASE QUANTITY
+# ROUTE 29: DECREASE QUANTITY
 # =================================================================
 @app.route('/user/cart/decrease/<pid>')
 def decrease_quantity(pid):
@@ -1003,11 +1097,8 @@ def decrease_quantity(pid):
     return redirect('/user/cart')
 
 
-
-
-
 # =================================================================
-# REMOVE ITEM
+# ROUTE 30: REMOVE ITEM
 # =================================================================
 @app.route('/user/cart/remove/<pid>')
 def remove_from_cart(pid):
@@ -1023,10 +1114,87 @@ def remove_from_cart(pid):
     return redirect('/user/cart')
 
 
+# =================================================================
+# ROUTE 31: BUY NOW WITH QUANTITY
+# =================================================================
+@app.route('/user/buy-now-quantity/<int:product_id>', methods=['POST'])
+def buy_now_quantity(product_id):
+    if 'user_id' not in session:
+        flash("Please login first!", "danger")
+        return redirect('/user-login')
+
+    quantity = int(request.form.get('quantity', 1))
+
+    # Validate quantity
+    if quantity < 1:
+        quantity = 1
+    if quantity > 10:
+        quantity = 10
+
+    # Get product
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("SELECT * FROM products WHERE product_id=%s", (product_id,))
+    product = cursor.fetchone()
+    cursor.close()
+    conn.close()
+
+    if not product:
+        flash("Product not found.", "danger")
+        return redirect('/user-dashboard')
+
+    # Create cart with only this product and selected quantity
+    session['cart'] = {
+        str(product_id): {
+            'name': product['name'],
+            'price': float(product['price']),
+            'image': product['image'],
+            'quantity': quantity
+        }
+    }
+
+    flash(f"Added {quantity} {product['name']} for immediate purchase!", "success")
+    return redirect('/user/checkout')
 
 
 # =================================================================
-# UPDATE: MODIFIED PAYMENT ROUTE TO CHECK ADDRESS
+# ROUTE 32: BUY NOW - ADD SINGLE PRODUCT TO CART & GO TO CHECKOUT
+# =================================================================
+@app.route('/user/buy-now/<int:product_id>')
+def buy_now(product_id):
+
+    if 'user_id' not in session:
+        flash("Please login first!", "danger")
+        return redirect('/user-login')
+
+    # Get product
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("SELECT * FROM products WHERE product_id=%s", (product_id,))
+    product = cursor.fetchone()
+    cursor.close()
+    conn.close()
+
+    if not product:
+        flash("Product not found!", "danger")
+        return redirect('/user-dashboard')
+
+    # Create cart with only this product
+    session['cart'] = {
+        str(product_id): {
+            'name': product['name'],
+            'price': float(product['price']),
+            'image': product['image'],
+            'quantity': 1
+        }
+    }
+
+    flash("Product added for purchase!", "success")
+    return redirect('/user/checkout')
+
+
+# =================================================================
+# ROUTE 33: UPDATE: MODIFIED PAYMENT ROUTE TO CHECK ADDRESS
 # =================================================================
 @app.route('/user/pay')
 def user_pay():
@@ -1067,10 +1235,8 @@ def user_pay():
     )
 
 
-
-
 # =================================================================
-# TEMP SUCCESS PAGE (Verification in Day 13)
+# ROUTE 34: TEMP SUCCESS PAGE (Verification in Day 13)
 # =================================================================
 @app.route('/payment-success')
 def payment_success():
@@ -1089,24 +1255,23 @@ def payment_success():
     )
 
 
-
 # =================================================================
-# ROUTE: PAYMENT FAILED PAGE (UPDATED)
+# ROUTE 35: PAYMENT FAILED PAGE (UPDATED)
 # =================================================================
 @app.route('/payment-failed')
 def payment_failed():
-    
+
     if 'user_id' not in session:
         flash("Please login first!", "danger")
         return redirect('/user-login')
-    
+
     payment_id = request.args.get('payment_id', 'N/A')
     order_id = request.args.get('order_id', 'N/A')
     reason = request.args.get('reason', '')
-    
+
     # Optional: Log the failure to database for tracking
     # You can add database logging here if needed
-    
+
     return render_template(
         "user/payment_failed.html",
         payment_id=payment_id,
@@ -1115,10 +1280,8 @@ def payment_failed():
     )
 
 
-
-
 # ------------------------------
-# Route: Verify Payment and Store Order
+# Route 36: Verify Payment and Store Order (AND DECREASE STOCK)
 # ------------------------------
 @app.route('/verify-payment', methods=['POST'])
 def verify_payment():
@@ -1176,13 +1339,22 @@ def verify_payment():
 
         order_db_id = cursor.lastrowid  # newly created order's primary key
 
-        # Insert all items
+        # Insert all items AND DECREASE STOCK
         for pid_str, item in cart.items():
             product_id = int(pid_str)
+
+            # Insert order item
             cursor.execute("""
                 INSERT INTO order_items (order_id, product_id, product_name, quantity, price)
                 VALUES (%s, %s, %s, %s, %s)
             """, (order_db_id, product_id, item['name'], item['quantity'], item['price']))
+
+            # Decrease stock (never go below 0)
+            cursor.execute("""
+                UPDATE products
+                SET quantity = GREATEST(quantity - %s, 0)
+                WHERE product_id = %s
+            """, (item['quantity'], product_id))
 
         # Commit transaction
         conn.commit()
@@ -1204,8 +1376,6 @@ def verify_payment():
     finally:
         cursor.close()
         conn.close()
-
-
 
 
 @app.route('/user/order-success/<int:order_db_id>')
@@ -1233,8 +1403,6 @@ def order_success(order_db_id):
     return render_template("user/order_success.html", order=order, items=items)
 
 
-
-
 @app.route('/user/my-orders')
 def my_orders():
     if 'user_id' not in session:
@@ -1253,9 +1421,8 @@ def my_orders():
     return render_template("user/my_orders.html", orders=orders)
 
 
-
 # ----------------------------
-# GENERATE INVOICE PDF
+# ROUTE 37: GENERATE INVOICE PDF
 # ----------------------------
 @app.route("/user/download-invoice/<int:order_id>")
 def download_invoice(order_id):
@@ -1298,41 +1465,40 @@ def download_invoice(order_id):
     return response
 
 
-
 # =================================================================
-# ROUTE: CHECKOUT ADDRESS PAGE (GET) - WITH SAVED ADDRESSES
+# ROUTE 38: CHECKOUT ADDRESS PAGE (GET) - WITH SAVED ADDRESSES
 # =================================================================
 @app.route('/user/checkout', methods=['GET'])
 def checkout_address():
-    
+
     if 'user_id' not in session:
         flash("Please login first!", "danger")
         return redirect('/user-login')
-    
+
     cart = session.get('cart', {})
-    
+
     if not cart:
         flash("Your cart is empty!", "danger")
         return redirect('/user/products')
-    
+
     # Calculate total amount
     grand_total = sum(item['price'] * item['quantity'] for item in cart.values())
-    
+
     # Fetch saved addresses for this user
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
-    
+
     cursor.execute("""
         SELECT * FROM user_addresses 
         WHERE user_id = %s 
         ORDER BY is_default DESC, created_at DESC
     """, (session['user_id'],))
-    
+
     saved_addresses = cursor.fetchall()
-    
+
     cursor.close()
     conn.close()
-    
+
     return render_template(
         "user/checkout_address.html",
         cart=cart,
@@ -1343,38 +1509,38 @@ def checkout_address():
 
 
 # =================================================================
-# ROUTE: SAVE ADDRESS & PROCEED TO PAYMENT (POST)
+# ROUTE 39: SAVE ADDRESS & PROCEED TO PAYMENT (POST)
 # =================================================================
 @app.route('/user/checkout', methods=['POST'])
 def save_address_and_pay():
-    
+
     if 'user_id' not in session:
         flash("Please login first!", "danger")
         return redirect('/user-login')
-    
+
     user_id = session['user_id']
-    
+
     # Check if user selected an existing address
     selected_address_id = request.form.get('selected_address_id')
-    
+
     if selected_address_id:
         # User selected a saved address
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
-        
+
         cursor.execute("""
             SELECT * FROM user_addresses 
             WHERE address_id = %s AND user_id = %s
         """, (selected_address_id, user_id))
-        
+
         address = cursor.fetchone()
         cursor.close()
         conn.close()
-        
+
         if not address:
             flash("Invalid address selected!", "danger")
             return redirect('/user/checkout')
-        
+
         # Save address to session
         session['delivery_address'] = {
             'address_id': address['address_id'],
@@ -1389,10 +1555,10 @@ def save_address_and_pay():
             'landmark': address['landmark'],
             'address_type': address['address_type']
         }
-        
+
         flash("Address selected successfully!", "success")
         return redirect('/user/pay')
-    
+
     else:
         # User is adding a new address
         full_name = request.form.get('full_name', '').strip()
@@ -1406,12 +1572,12 @@ def save_address_and_pay():
         landmark = request.form.get('landmark', '').strip()
         address_type = request.form.get('address_type', 'Home')
         save_address = request.form.get('save_address', '0')
-        
+
         # Validate required fields
         if not all([full_name, phone, email, address_line1, city, state, pincode]):
             flash("Please fill all required fields!", "danger")
             return redirect('/user/checkout')
-        
+
         address_data = {
             'full_name': full_name,
             'phone': phone,
@@ -1421,20 +1587,21 @@ def save_address_and_pay():
             'city': city,
             'state': state,
             'pincode': pincode,
+
             'landmark': landmark,
             'address_type': address_type
         }
-        
+
         # Save to database if user checked the "save address" option
         if save_address == '1':
             conn = get_db_connection()
             cursor = conn.cursor()
-            
+
             # Check if this is user's first address - make it default
             cursor.execute("SELECT COUNT(*) as count FROM user_addresses WHERE user_id = %s", (user_id,))
             count_result = cursor.fetchone()
             is_first_address = count_result[0] == 0
-            
+
             cursor.execute("""
                 INSERT INTO user_addresses 
                 (user_id, full_name, phone, email, address_line1, address_line2, 
@@ -1444,25 +1611,24 @@ def save_address_and_pay():
                 user_id, full_name, phone, email, address_line1, address_line2,
                 city, state, pincode, landmark, address_type, is_first_address
             ))
-            
+
             conn.commit()
             address_id = cursor.lastrowid
-            
+
             cursor.close()
             conn.close()
-            
+
             address_data['address_id'] = address_id
-        
+
         # Save address to session
         session['delivery_address'] = address_data
-        
+
         flash("Address saved successfully!", "success")
         return redirect('/user/pay')
 
 
-
 # =================================================================
-# OPTIONAL: SAVE ADDRESS TO DATABASE (MORE PERMANENT)
+# ROUTE 40: SAVE ADDRESS TO DATABASE (MORE PERMANENT)
 # =================================================================
 def save_address_to_database(user_id, address_data):
     """
@@ -1470,7 +1636,7 @@ def save_address_to_database(user_id, address_data):
     """
     conn = get_db_connection()
     cursor = conn.cursor()
-    
+
     cursor.execute("""
         INSERT INTO user_addresses 
         (user_id, full_name, phone, email, address_line1, address_line2, 
@@ -1490,101 +1656,101 @@ def save_address_to_database(user_id, address_data):
         address_data['address_type'],
         True  # is_default
     ))
-    
+
     conn.commit()
     address_id = cursor.lastrowid
-    
+
     cursor.close()
     conn.close()
-    
+
     return address_id
 
 
-
 # =================================================================
-# OPTIONAL: MANAGE ADDRESSES PAGE
+# ROUTE 41: MANAGE ADDRESSES PAGE
 # =================================================================
 @app.route('/user/addresses')
 def user_addresses():
-    
+
     if 'user_id' not in session:
         flash("Please login first!", "danger")
         return redirect('/user-login')
-    
+
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
-    
+
     cursor.execute("""
         SELECT * FROM user_addresses 
         WHERE user_id = %s 
         ORDER BY is_default DESC, created_at DESC
     """, (session['user_id'],))
-    
+
     addresses = cursor.fetchall()
-    
+
     cursor.close()
     conn.close()
-    
+
     return render_template("user/manage_addresses.html", addresses=addresses)
 
 
 # =================================================================
-# OPTIONAL: SET DEFAULT ADDRESS
+# ROUTE 42: SET DEFAULT ADDRESS
 # =================================================================
 @app.route('/user/address/set-default/<int:address_id>')
 def set_default_address(address_id):
-    
+
     if 'user_id' not in session:
         flash("Please login first!", "danger")
         return redirect('/user-login')
-    
+
     user_id = session['user_id']
-    
+
     conn = get_db_connection()
     cursor = conn.cursor()
-    
+
     # Remove default from all user addresses
     cursor.execute("UPDATE user_addresses SET is_default = 0 WHERE user_id = %s", (user_id,))
-    
+
     # Set this address as default
     cursor.execute("""
         UPDATE user_addresses 
         SET is_default = 1 
         WHERE address_id = %s AND user_id = %s
     """, (address_id, user_id))
-    
+
     conn.commit()
     cursor.close()
     conn.close()
-    
+
     flash("Default address updated!", "success")
     return redirect('/user/addresses')
 
 
 # =================================================================
-# OPTIONAL: DELETE ADDRESS
+# ROUTE 43: DELETE ADDRESS
 # =================================================================
 @app.route('/user/address/delete/<int:address_id>')
 def delete_address(address_id):
-    
+
     if 'user_id' not in session:
         flash("Please login first!", "danger")
         return redirect('/user-login')
-    
+
     conn = get_db_connection()
     cursor = conn.cursor()
-    
+
     cursor.execute("""
         DELETE FROM user_addresses 
         WHERE address_id = %s AND user_id = %s
     """, (address_id, session['user_id']))
-    
+
     conn.commit()
     cursor.close()
     conn.close()
-    
+
     flash("Address deleted successfully!", "success")
     return redirect('/user/addresses')
+
 
 # ------------------------- RUN APP ------------------------
 if __name__ == '__main__':
