@@ -44,9 +44,9 @@
                         required>{{ product.description }}</textarea>
             </div>
 
-            <!-- Category and Price Row -->
+            <!-- Category, Price and Quantity Row -->
             <div class="row mb-4">
-              <div class="col-md-6">
+              <div class="col-md-4">
                 <label for="category" class="form-label fw-semibold">
                   <i class="bi bi-grid me-2"></i>Category
                 </label>
@@ -58,7 +58,7 @@
                        required>
               </div>
 
-              <div class="col-md-6">
+              <div class="col-md-4">
                 <label for="price" class="form-label fw-semibold">
                   <i class="bi bi-currency-rupee me-2"></i>Price
                 </label>
@@ -73,6 +73,19 @@
                          value="{{ product.price }}"
                          required>
                 </div>
+              </div>
+
+              <div class="col-md-4">
+                <label for="quantity" class="form-label fw-semibold">
+                  <i class="bi bi-123 me-2"></i>Quantity in Stock
+                </label>
+                <input type="number"
+                       class="form-control form-control-lg"
+                       id="quantity"
+                       name="quantity"
+                       min="0"
+                       value="{{ product.quantity }}"
+                       required>
               </div>
             </div>
 
