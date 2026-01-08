@@ -1,9 +1,9 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>My Orders</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>
+{% extends "user/base.html" %}
+
+{% block title %}My Orders - SmartCart{% endblock %}
+
+{% block extra_css %}
+<style>
         * {
             margin: 0;
             padding: 0;
@@ -266,17 +266,9 @@
             }
         }
     </style>
-</head>
-<body>
+{% endblock %}
 
-<!-- Navigation Bar -->
-<div class="navbar">
-    <div class="nav-container">
-        <a href="/user-dashboard" class="back-btn">
-            ← Back to Dashboard
-        </a>
-    </div>
-</div>
+{% block content %}
 
 <!-- Main Container -->
 <div class="container">
@@ -290,7 +282,7 @@
         <div class="empty-state">
             <div class="empty-icon">📦</div>
             <p>You have not placed any orders yet</p>
-            <a href="/user-dashboard" class="shop-btn">Start Shopping</a>
+            <a href="/user/products" class="shop-btn">Start Shopping</a>
         </div>
 
     {% else %}
@@ -339,6 +331,4 @@
     {% endif %}
 
 </div>
-
-</body>
-</html>
+{% endblock %}
