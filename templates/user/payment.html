@@ -1,8 +1,8 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Payment</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+{% extends "user/base.html" %}
+{% block title %}Payment - SmartCart{% endblock %}
+
+
+{% block extra_css %}
     <style>
         * {
             margin: 0;
@@ -185,8 +185,9 @@
             }
         }
     </style>
-</head>
-<body>
+{% endblock %}
+
+{% block content %}
 
 <div class="container">
     <div class="icon-container">
@@ -285,5 +286,5 @@ document.getElementById('rzp-button').onclick = function(e){
 }
 </script>
 
-</body>
-</html>
+{% endblock %}
+
