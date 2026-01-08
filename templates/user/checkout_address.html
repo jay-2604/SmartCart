@@ -1,8 +1,7 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Checkout - Delivery Address</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+{% extends "user/base.html" %}
+{% block title %}Checkout - SmartCart{% endblock %}
+
+{% block extra_css %}
     <style>
         * {
             margin: 0;
@@ -437,17 +436,9 @@
             }
         }
     </style>
-</head>
-<body>
+{% endblock %}
 
-<!-- Navigation Bar -->
-<div class="navbar">
-    <div class="nav-container">
-        <a href="/user/cart" class="back-btn">
-            ← Back to Cart
-        </a>
-    </div>
-</div>
+{% block content %}
 
 <!-- Checkout Container -->
 <div class="checkout-container">
@@ -690,5 +681,4 @@
     });
 </script>
 
-</body>
-</html>
+{% endblock %}
