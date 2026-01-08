@@ -1,0 +1,240 @@
+{% extends "user/base.html" %}
+
+{% block title %}My Addresses - SmartCart{% endblock %}
+
+{% block extra_css %}
+<style>
+    .page-header {
+        margin-bottom: 30px;
+    }
+
+    .page-header h2 {
+        font-size: 32px;
+        font-weight: 700;
+        color: #333;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .add-address-btn {
+        display: inline-block;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 14px 28px;
+        border-radius: 10px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 16px;
+        transition: all 0.3s ease;
+        margin-bottom: 30px;
+    }
+
+    .add-address-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    .empty-state {
+        background: white;
+        border-radius: 16px;
+        padding: 60px 40px;
+        text-align: center;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .empty-icon {
+        font-size: 80px;
+        margin-bottom: 20px;
+        opacity: 0.3;
+    }
+
+    .empty-state p {
+        font-size: 18px;
+        color: #666;
+        margin-bottom: 24px;
+    }
+
+    .addresses-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 20px;
+    }
+
+    .address-card {
+        background: white;
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+        position: relative;
+    }
+
+    .address-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    }
+
+    .address-card.default {
+        border-color: #667eea;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    }
+
+    .default-badge {
+        position: absolute;
+        top: 16px;
+        right: 16px;
+        background: #667eea;
+        color: white;
+        padding: 4px 12px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+
+    .address-type-badge {
+        display: inline-block;
+        background: #28a745;
+        color: white;
+        padding: 4px 12px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        margin-bottom: 12px;
+    }
+
+    .address-card .name {
+        font-weight: 600;
+        font-size: 18px;
+        margin-bottom: 8px;
+        color: #333;
+    }
+
+    .address-card .details {
+        color: #666;
+        font-size: 14px;
+        line-height: 1.8;
+        margin-bottom: 12px;
+    }
+
+    .address-card .phone {
+        color: #667eea;
+        font-weight: 500;
+        margin-bottom: 16px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .address-actions {
+        display: flex;
+        gap: 8px;
+        padding-top: 16px;
+        border-top: 1px solid #e1e8ed;
+    }
+
+    .action-btn {
+        flex: 1;
+        padding: 8px 16px;
+        border-radius: 6px;
+        text-decoration: none;
+        font-weight: 500;
+        font-size: 13px;
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+
+    .btn-default {
+        background: #f8f9fa;
+        color: #667eea;
+        border: 1px solid #667eea;
+    }
+
+    .btn-default:hover {
+        background: #667eea;
+        color: white;
+    }
+
+    .btn-delete {
+        background: #f8f9fa;
+        color: #dc3545;
+        border: 1px solid #dc3545;
+    }
+
+    .btn-delete:hover {
+        background: #dc3545;
+        color: white;
+    }
+
+    @media (max-width: 768px) {
+        .addresses-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+
+    <div class="page-header">
+        <h2>📍 My Addresses</h2>
+    </div>
+
+    <a href="/user/checkout" class="add-address-btn">➕ Add New Address</a>
+
+    {% if addresses|length == 0 %}
+        <!-- Empty State -->
+        <div class="empty-state">
+            <div class="empty-icon">📍</div>
+            <p>You haven't saved any addresses yet</p>
+            <a href="/user/checkout" class="add-address-btn">Add Your First Address</a>
+        </div>
+
+    {% else %}
+
+        <!-- Addresses Grid -->
+        <div class="addresses-grid">
+            {% for address in addresses %}
+            <div class="address-card {% if address.is_default %}default{% endif %}">
+
+                {% if address.is_default %}
+                <span class="default-badge">Default</span>
+                {% endif %}
+
+                <span class="address-type-badge">{{ address.address_type }}</span>
+                
+                <div class="name">{{ address.full_name }}</div>
+                
+                <div class="details">
+                    {{ address.address_line1 }}{% if address.address_line2 %}, {{ address.address_line2 }}{% endif %}<br>
+                    {{ address.city }}, {{ address.state }} - {{ address.pincode }}
+                    {% if address.landmark %}<br>Landmark: {{ address.landmark }}{% endif %}
+                </div>
+
+                <div class="phone">📞 {{ address.phone }}</div>
+
+                <div class="address-actions">
+                    {% if not address.is_default %}
+                    <a href="/user/address/set-default/{{ address.address_id }}" class="action-btn btn-default">
+                        Set as Default
+                    </a>
+                    {% endif %}
+                    <a href="/user/address/delete/{{ address.address_id }}" 
+                       class="action-btn btn-delete"
+                       onclick="return confirm('Are you sure you want to delete this address?')">
+                        Delete
+                    </a>
+                </div>
+
+            </div>
+            {% endfor %}
+        </div>
+
+    {% endif %}
+
+</div>
+{% endblock %}
