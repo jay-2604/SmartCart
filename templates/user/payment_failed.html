@@ -1,34 +1,18 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Payment Failed</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+{% extends "user/base.html" %}
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
+{% block title %}Payment Failed - SmartCart{% endblock %}
 
-        .container {
-            background: white;
-            padding: 50px 40px;
-            border-radius: 16px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            max-width: 500px;
-            width: 100%;
-            text-align: center;
-        }
+{% block extra_css %}
+<style>
+    .failed-container {
+        max-width: 500px;
+        margin: 60px auto;
+        background: white;
+        padding: 50px 40px;
+        border-radius: 16px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+        text-align: center;
+    }
 
         .error-animation {
             margin-bottom: 30px;
@@ -258,8 +242,9 @@
             }
         }
     </style>
-</head>
-<body>
+{% endblock %}
+
+{% block content %}
 
 <div class="container">
     <div class="error-animation">
@@ -318,6 +303,4 @@
         Need help? <a href="/contact">Contact Support</a>
     </div>
 </div>
-
-</body>
-</html>
+{% endblock %}
