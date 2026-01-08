@@ -10,6 +10,10 @@
         rel="stylesheet"
     >
 
+    <!-- Bootstrap Icons (for default avatar icon) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+
+    <!-- Custom CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 
@@ -43,6 +47,26 @@
 
                 <li class="nav-item">
                     <a class="nav-link" href="{{ url_for('add_item_page') }}">Add Product</a>
+                </li>
+
+                <!-- Avatar + name (link to profile) -->
+                <li class="nav-item d-flex align-items-center ms-2">
+                    <a class="nav-link d-flex align-items-center" href="{{ url_for('admin_profile') }}">
+                        {% if session.get('admin_profile_image') %}
+                            <img src="{{ url_for('static', filename='uploads/admin_profiles/' ~ session.get('admin_profile_image')) }}"
+                                 alt="Admin Avatar"
+                                 class="rounded-circle me-2"
+                                 style="width: 32px; height: 32px; object-fit: cover;">
+                        {% else %}
+                            <span class="rounded-circle bg-light d-flex align-items-center justify-content-center me-2"
+                                  style="width: 32px; height: 32px;">
+                                <i class="bi bi-person text-dark"></i>
+                            </span>
+                        {% endif %}
+                        <span class="d-none d-sm-inline">
+                            {{ session.get('admin_name', 'Admin') }}
+                        </span>
+                    </a>
                 </li>
 
                 <li class="nav-item">
