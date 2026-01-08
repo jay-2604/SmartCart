@@ -1,0 +1,145 @@
+{% extends "user/base.html" %}
+
+{% block title %}Verify OTP - SmartCart{% endblock %}
+
+{% block extra_css %}
+<style>
+    .otp-container {
+        max-width: 420px;
+        margin: 60px auto;
+        background: white;
+        padding: 40px;
+        border-radius: 16px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+    }
+
+    .otp-container h2 {
+        color: #333;
+        margin-bottom: 10px;
+        text-align: center;
+        font-size: 28px;
+        font-weight: 600;
+    }
+
+    .otp-subtitle {
+        text-align: center;
+        color: #666;
+        margin-bottom: 30px;
+        font-size: 14px;
+    }
+
+    .otp-form {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .otp-form label {
+        color: #555;
+        font-weight: 500;
+        margin-bottom: 8px;
+        font-size: 14px;
+    }
+
+    .otp-form input[type="text"],
+    .otp-form input[type="password"] {
+        padding: 14px 16px;
+        border: 2px solid #e1e8ed;
+        border-radius: 8px;
+        font-size: 15px;
+        transition: all 0.3s ease;
+        margin-bottom: 20px;
+        text-align: center;
+    }
+
+    .otp-form input:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .verify-btn {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 14px;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 0.2s ease, box-shadow 0.3s ease;
+        margin-top: 10px;
+    }
+
+    .verify-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    .resend-link {
+        text-align: center;
+        margin-top: 20px;
+        padding-top: 20px;
+        border-top: 1px solid #e1e8ed;
+    }
+
+    .resend-link a {
+        color: #667eea;
+        text-decoration: none;
+        font-weight: 500;
+        transition: color 0.3s ease;
+    }
+
+    .resend-link a:hover {
+        color: #764ba2;
+        text-decoration: underline;
+    }
+
+    .password-note {
+        font-size: 12px;
+        color: #666;
+        margin-top: -15px;
+        margin-bottom: 15px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="otp-container">
+    <h2>Verify Email</h2>
+    <div class="otp-subtitle">
+        Enter the OTP sent to your email
+    </div>
+
+    <form method="POST" action="/user-verify-otp" class="otp-form">
+        <label>OTP Code</label>
+        <input type="text" 
+               name="otp" 
+               placeholder="Enter 6-digit OTP" 
+               maxlength="6"
+               pattern="[0-9]{6}"
+               required>
+
+        <label>Create Password</label>
+        <input type="password" 
+               name="password" 
+               placeholder="Enter your password" 
+               minlength="6"
+               required>
+
+        <label>Confirm Password</label>
+        <input type="password" 
+               name="confirm_password" 
+               placeholder="Confirm your password" 
+               minlength="6"
+               required>
+        
+        <div class="password-note">Password must be at least 6 characters long</div>
+
+        <button type="submit" class="verify-btn">Verify & Create Account</button>
+    </form>
+
+    <div class="resend-link">
+        Didn't receive OTP? <a href="/user-register">Resend OTP</a>
+    </div>
+</div>
+{% endblock %}
