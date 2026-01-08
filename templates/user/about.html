@@ -1,0 +1,89 @@
+{% extends "user/base.html" %}
+
+{% block title %}About Us - SmartCart{% endblock %}
+
+{% block content %}
+
+<style>
+    .about-container {
+        max-width: 900px;
+        margin: 40px auto;
+        padding: 30px;
+        background: #ffffff;
+        border-radius: 12px;
+        box-shadow: 0px 2px 15px rgba(0,0,0,0.1);
+        line-height: 1.8;
+        font-size: 18px;
+    }
+    .about-title {
+        text-align: center;
+        font-size: 32px;
+        font-weight: bold;
+        margin-bottom: 15px;
+    }
+    .highlight {
+        color: #007bff;
+        font-weight: bold;
+    }
+    .about-section {
+        margin-top: 25px;
+    }
+</style>
+
+<div class="about-container">
+
+    <h2 class="about-title">About SmartCart</h2>
+
+    <p>
+        <strong>SmartCart</strong> is a modern web-based shopping management system designed
+        to make inventory handling, product management, and admin tasks simpler and faster.
+        Whether you are adding new items, managing stock, or reviewing your product list,
+        SmartCart gives you a smooth and user-friendly experience.
+    </p>
+
+    <div class="about-section">
+        <h3 class="highlight">✨ What SmartCart Offers</h3>
+        <ul>
+            <li>Secure Admin Login with OTP verification</li>
+            <li>Fast product adding, updating, and image management</li>
+            <li>Clean dashboard for easy navigation</li>
+            <li>Organized product listings with search & sorting</li>
+            <li>Mobile-friendly and responsive UI</li>
+        </ul>
+    </div>
+
+    <div class="about-section">
+        <h3 class="highlight">🚀 Our Goal</h3>
+        <p>
+            Our mission is to help shop owners, small businesses, and inventory managers
+            handle their products more efficiently. SmartCart removes complexity
+            and gives you full control over your store with just a few clicks.
+        </p>
+    </div>
+
+    <div class="about-section">
+        <h3 class="highlight">👨‍💻 Developed By</h3>
+        <p>
+            This application is developed by <strong>Your Name</strong> as part of a
+            full-stack Flask project using:
+        </p>
+        <ul>
+            <li>Flask (Python)</li>
+            <li>MySQL Database</li>
+            <li>HTML, CSS, Bootstrap</li>
+            <li>Bcrypt Authentication</li>
+            <li>Flask-Mail for OTP</li>
+        </ul>
+    </div>
+
+    <p style="text-align:center; margin-top:25px;">
+        ⭐ Thank you for choosing SmartCart ⭐<br>
+        <a href="/" class="btn btn-outline-secondary btn-lg bg-primary">
+          <i class="bi bi-house me-2"></i>Login page
+        </a>
+    </p>
+
+</div>
+
+
+{% endblock %}
