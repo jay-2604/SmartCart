@@ -1,0 +1,107 @@
+{% extends "user/base.html" %}
+
+{% block title %}Contact Us - SmartCart{% endblock %}
+
+{% block content %}
+
+<style>
+    .contact-container {
+        max-width: 800px;
+        margin: 40px auto;
+        padding: 30px;
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0px 2px 18px rgba(0,0,0,0.1);
+    }
+
+    .contact-title {
+        text-align: center;
+        font-size: 32px;
+        font-weight: bold;
+        margin-bottom: 20px;
+    }
+
+    .contact-info {
+        margin-top: 20px;
+        font-size: 18px;
+        line-height: 1.7;
+    }
+
+    .contact-info i {
+        color: #007bff;
+        margin-right: 8px;
+    }
+
+    .contact-form {
+        margin-top: 30px;
+    }
+
+    .contact-form label {
+        font-weight: bold;
+        margin-top: 10px;
+    }
+
+    .contact-form input,
+    .contact-form textarea {
+        width: 100%;
+        border-radius: 6px;
+        border: 1px solid #ccc;
+        padding: 12px;
+        margin-bottom: 15px;
+        font-size: 16px;
+    }
+
+    .contact-btn {
+        background: #007bff;
+        color: white;
+        border: none;
+        padding: 12px 25px;
+        font-size: 18px;
+        border-radius: 6px;
+        cursor: pointer;
+        width: 100%;
+    }
+
+    .contact-btn:hover {
+        background: #0056b3;
+    }
+</style>
+
+<div class="contact-container">
+
+    <h2 class="contact-title">Contact Us</h2>
+
+    <p style="text-align:center;">
+        We'd love to hear from you! Whether you have questions, feedback, or need support—
+        feel free to reach out using the details below.
+    </p>
+
+    <div class="contact-info">
+        <p><i class="fas fa-envelope"></i> <strong>Email:</strong> support@smartcart.com</p>
+        <p><i class="fas fa-phone-alt"></i> <strong>Phone:</strong> +91 98765 43210</p>
+        <p><i class="fas fa-map-marker-alt"></i> <strong>Address:</strong> SmartCart Technologies, Hyderabad, India</p>
+    </div>
+
+    <hr>
+
+    <h3 style="margin-top:25px;">Send us a message</h3>
+
+    <form class="contact-form">
+        <label>Your Name</label>
+        <input type="text" placeholder="Enter your name">
+
+        <label>Your Email</label>
+        <input type="email" placeholder="Enter your email">
+
+        <label>Your Message</label>
+        <textarea rows="5" placeholder="Write your message here"></textarea>
+
+        <button type="submit" class="contact-btn">Send Message</button>
+    </form><br>
+    <a href="/" class="btn btn-outline-secondary btn-lg bg-primary">
+          <i class="bi bi-house me-2"></i>Login page
+        </a>
+</div>
+
+
+{% endblock %}
